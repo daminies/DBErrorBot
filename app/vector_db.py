@@ -31,11 +31,7 @@ def load_vector_db():
     for file in Path("internal_data").glob("*.md"):
         loader = TextLoader(str(file), encoding="utf-8")
         docs.extend(loader.load()) # Document 객체 리스트에 추가
-<<<<<<< HEAD
-    # 문서 조각으로 분할 (500자 단위, 50자 중첩) 
-=======
     # 문서 조각으로 분할 (500자 단위, 50자 중첩)
->>>>>>> 9a139143bf0a9f34e4e8d151ebfb797e385e1759
     chunks = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50).split_documents(docs) 
     # FAISS 벡터 인덱스 생성
     db = FAISS.from_documents(chunks, embedding_model)

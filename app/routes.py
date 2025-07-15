@@ -21,12 +21,7 @@ from app.utils import extract_ora_code, slackify_links, clean_md
 from app.slack import send_slack, verify_slack_signature
 
 # ERROR LOG 로 문서 검색
-<<<<<<< HEAD
 from app.vector_search import search_md_by_code
-=======
-from app.vector_search_internal import search_internal_md
-from app.vector_search_vendor import search_vendor_md
->>>>>>> 9a139143bf0a9f34e4e8d151ebfb797e385e1759
 
 # DB 타입 구분 -> 현재 미사용
 from app.db_error_classifier import classify_error_type
@@ -62,13 +57,8 @@ async def log_and_notify(log: errorlog):
 
     # 2. ORA 코드가 있을 경우: 코드 기반 검색
     if ora_code:
-<<<<<<< HEAD
         matched_sample = search_md_by_code(ora_code, "internal_data")
         matched_vendor = search_md_by_code(ora_code, "vendor_data")
-=======
-        matched_sample = search_internal_md(ora_code)
-        matched_vendor = search_vendor_md(ora_code)
->>>>>>> 9a139143bf0a9f34e4e8d151ebfb797e385e1759
 
     # 3. 결과가 없으면 유사도 검색 수행 (벡터 DB에서 검색)
     if not matched_sample:
@@ -145,18 +135,11 @@ async def slack_events(request: Request):
             result = await log_and_notify(errorlog(title="Slack Message", content=text)) 
 
             # 발송 
-<<<<<<< HEAD
             send_slack(f"*분석 완료 여부 *\n{result['message']}")
-=======
-            send_slack(f"*분석 완료*\n{result['message']}")
->>>>>>> 9a139143bf0a9f34e4e8d151ebfb797e385e1759
 
 					   
 
     return {"ok": True}
 
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 9a139143bf0a9f34e4e8d151ebfb797e385e1759

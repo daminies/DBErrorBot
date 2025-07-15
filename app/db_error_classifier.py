@@ -1,10 +1,6 @@
 import re
 
-<<<<<<< HEAD
 # 현재 미사용
-=======
-# 현재 미사용 
->>>>>>> 9a139143bf0a9f34e4e8d151ebfb797e385e1759
 def classify_error_type(message: str) -> dict:
     if "ORA-" in message:
         match = re.search(r"(ORA-\d{5})", message)
