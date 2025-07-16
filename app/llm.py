@@ -11,8 +11,7 @@ load_dotenv()
 
 
 # model="gpt-4o"로 지정 -> 변경필요한지..? 
-# 분석결과의 일관성을 위해 temperature는 0.3으로 설정 -> 변경필요한지..?
-llm = ChatOpenAI(model="gpt-4o", temperature=0.3)
+llm = ChatOpenAI(model="gpt-4o", temperature=0.0)
 
 
 def run_final_llm_review(error_message: str, docs: str) -> str:
