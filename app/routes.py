@@ -46,6 +46,51 @@ recent_ts_cache = {}
 
 
 
+# slack 메세지 수신 handler
+async def slack_events(request: Request):
+    # 요청 body 및 헤더 정보 추출
+    body = await request.body()
+    headers = request.headers
+    timestamp = headers.get("X-Slack-Request-Timestamp")
+    slack_signature = headers.get("X-Slack-Signature")
+
+    # 슬랙에서 온 요청인지 확인 (보안 검증)
+    if not verify_slack_signature(timestamp, body, slack_signature):
+        return {"error": "Invalid signature"}
+
+    # body 파싱
+    payload = json.loads(body)
+
+    # 슬랙 URL 검증 요청 (앱 최초 등록 시 사용)
+    if payload.get("type") == "url_verification":
+        return payload.get("challenge")
+
+    # 실제 이벤트 수신 처리
+    if payload.get("type") == "event_callback":
+        event = payload.get("event", {})
+        # 메시지 수신 이벤트일 경우 (subtype은 bot 메시지 등 필터링)
+        if event.get("type") == "message" and "subtype" not in event:
+            ts = event.get("ts")    # 타임스탬프 기반 중복 메시지 필터링
+            text = event.get("text", "") 
+
+            if ts in recent_ts_cache:
+                return {"message": "Duplicate ignored"} 
+
+            # 캐시에 타임스탬프 저장
+            recent_ts_cache[ts] = time.time() 
+
+            # 분석 수행
+            result = await log_and_notify(errorlog(title="Slack Message", content=text)) 
+
+            # 발송 
+            send_slack(f"*분석 완료 여부 *\n{result['message']}")
+
+					   
+    return {"ok": True}
+
+
+
+
 async def log_and_notify(log: errorlog):
     
      # 1. 에러 메시지에서 ORA-XXXXX 패턴이 있을 경우 추출  
@@ -98,48 +143,6 @@ def update_index():
 
 
 
-# slack 메세지 수신 handler
-async def slack_events(request: Request):
-    # 요청 body 및 헤더 정보 추출
-    body = await request.body()
-    headers = request.headers
-    timestamp = headers.get("X-Slack-Request-Timestamp")
-    slack_signature = headers.get("X-Slack-Signature")
-
-    # 슬랙에서 온 요청인지 확인 (보안 검증)
-    if not verify_slack_signature(timestamp, body, slack_signature):
-        return {"error": "Invalid signature"}
-
-    # body 파싱
-    payload = json.loads(body)
-
-    # 슬랙 URL 검증 요청 (앱 최초 등록 시 사용)
-    if payload.get("type") == "url_verification":
-        return payload.get("challenge")
-
-    # 실제 이벤트 수신 처리
-    if payload.get("type") == "event_callback":
-        event = payload.get("event", {})
-        # 메시지 수신 이벤트일 경우 (subtype은 bot 메시지 등 필터링)
-        if event.get("type") == "message" and "subtype" not in event:
-            ts = event.get("ts")    # 타임스탬프 기반 중복 메시지 필터링
-            text = event.get("text", "") 
-
-            if ts in recent_ts_cache:
-                return {"message": "Duplicate ignored"} 
-
-            # 캐시에 타임스탬프 저장
-            recent_ts_cache[ts] = time.time() 
-
-            # 분석 수행
-            result = await log_and_notify(errorlog(title="Slack Message", content=text)) 
-
-            # 발송 
-            send_slack(f"*분석 완료 여부 *\n{result['message']}")
-
-					   
-
-    return {"ok": True}
 
 
 
